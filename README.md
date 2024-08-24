@@ -14,12 +14,7 @@ There is a login and registration functionality included.
 Users can shop for products. Each user has his own shopping cart (session functionality).
 Checkout is transactional.
 
-### View Demo Video
-
-<video width="600" controls>
-  <source src="./Project-1.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Watch the video]](./Project-1.mp4)
 
 ## Configuration
 
