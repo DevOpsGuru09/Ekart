@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+>
+  <head>
+    <div th:replace="fragments/header :: header" />
+  </head>
+
+  <body>
+    <div th:replace="fragments/header :: navbar" />
+
+    <div class="container">
+      <h1 class="jumbotron">
+        <span sec:authentication="name"></span>'s Shopping Cart
+      </h1>
+
+      <div
+        class="alert alert-info"
+        th:if="${outOfStockMessage}"
+        th:utext="${outOfStockMessage}"
+      ></div>
+
+      <div
+        class="panel panel-default"
+        th:each="product : ${products.entrySet()}"
+      >
+        <div class="panel-heading">
+          <h2>
+            <a
+              th:text="${product.getKey().name}"
+              th:href="@{'/product/' + ${product.getKey().id}}"
+              >Title</a
+            >
+          </h2>
+          <p th:text="${product.getKey().description}">Description</p>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-3" th:inline="text">
+              Price: $[[${#numbers.formatDecimal(product.getKey().price, 0,
+              'COMMA', 2, 'POINT')}]]
+            </div>
+            <div class="col-md-3" th:inline="text">
+              Quantity: [[${product.getValue()}]]
+            </div>
+            <div class="col-md-3" th:inline="text">
+              Subtotal: $[[${#numbers.formatDecimal(product.getKey().price *
+              product.getValue(), 0, 'COMMA', 2, 'POINT')}]]
+            </div>
+            <div class="col-md-3">
+              <a
+                th:href="@{'/shoppingCart/removeProduct/{id}'(id=${product.getKey().id})}"
+                class="btn btn-danger"
+                >Remove</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">Order Summary</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-9"><strong>Total:</strong></div>
+            <div class="col-md-3" th:inline="text">
+              $[[${#numbers.formatDecimal(total, 0, 'COMMA', 2, 'POINT')}]]
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <a th:href="@{'/shoppingCart/checkout'}" class="btn btn-success btn-lg"
+          >Proceed to Checkout</a
+        >
+      </div>
+    </div>
+
+    <div th:replace="fragments/footer :: footer" />
+  </body>
+</html>
