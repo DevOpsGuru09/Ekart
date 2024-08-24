@@ -11,7 +11,7 @@ pipeline {
     stages {   
         stage('Checkout SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/jaiswaladi246/Ekart'
+                git branch: 'main', url: 'https://github.com/DevOpsGuru09/Ekart.git'
             }
         }     
         stage('Compile') {
