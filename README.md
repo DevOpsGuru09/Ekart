@@ -1,4 +1,6 @@
-# Spring Boot Shopping Cart Web App
+# 🎉 Welcome to DevOpsGuru
+
+# Spring Boot Ekart Web App
 
 ## About
 
