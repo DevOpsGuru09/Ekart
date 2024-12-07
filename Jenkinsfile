@@ -78,6 +78,35 @@ pipeline {
                 }
             }
         }
+
+        stage('Clean Docker Resources') {
+            steps {
+                script {
+                    // Define the cleanup operation (container, image, etc.)
+                    def cleanupType = 'container' // Can be 'container', 'image', or 'system'
+                    def pruneCommand = ""
+
+                    // Set the prune command based on the cleanup type
+                    if (cleanupType == 'container') {
+                        pruneCommand = 'docker container prune -f'
+                    } else if (cleanupType == 'image') {
+                        pruneCommand = 'docker image prune -a -f'
+                    } else if (cleanupType == 'system') {
+                        pruneCommand = 'docker system prune -f --volumes'
+                    }
+
+                    // Execute the cleanup command on the remote host
+                    withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
+                                                      usernameVariable: 'SSH_USERNAME', 
+                                                      keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
+                            '$pruneCommand'
+                        """
+                    }
+                }
+            }
+        }
         
         stage('Deploy to Docker Container') {
             steps {
