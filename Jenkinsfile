@@ -35,7 +35,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONARQUBE'
-        REMOTE_HOST = 'sanitizeHost(params.DOCKER_HOST)' // Replace with your Docker host IP
+        REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
         // // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
         // SONAR_URL = params.SONAR_URL // SonarQube server
         // SONAR_TOKEN = params.SONAR_TOKEN
@@ -54,8 +54,6 @@ pipeline {
         string(name: 'SONAR_PROJECT_KEY', defaultValue: 'shopping-cart', 
                description: 'Enter the SonarQube project key')
         // Input for Docker details
-        string(name: 'DOCKER_HOST', defaultValue: '192.168.1.13', 
-               description: 'Enter the Docker Host URL')
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'shopping-cart', 
                description: 'Enter the Docker image name')
     }
