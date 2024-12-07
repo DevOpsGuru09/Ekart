@@ -1,3 +1,31 @@
+def cleanDockerResources(cleanupTypes) {
+    // Loop through the cleanup types selected by the user
+    cleanupTypes.each { cleanupType ->
+        def pruneCommand = ""
+
+        // Determine the prune command based on selected cleanup type
+        if (cleanupType == 'container') {
+            pruneCommand = 'docker container prune -f'
+        } else if (cleanupType == 'image') {
+            pruneCommand = 'docker image prune -a -f'
+        } else if (cleanupType == 'volume') {
+            pruneCommand = 'docker volume prune -f'
+        } else if (cleanupType == 'all') {
+            pruneCommand = 'docker system prune -f --volumes'
+        }
+
+        // Execute the prune command on the remote Docker host
+        withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
+                                          usernameVariable: 'SSH_USERNAME', 
+                                          keyFileVariable: 'SSH_KEY')]) {
+            sh """
+                ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
+                '$pruneCommand'
+            """
+        }
+    }
+}
+
 pipeline {
     agent any
     tools {
@@ -8,6 +36,13 @@ pipeline {
         SCANNER_HOME = tool 'SONARQUBE'
         REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
     }
+
+    parameters {
+        // Define multi-choice parameter to allow selection of multiple cleanup options
+        choice(name: 'CLEANUP_TYPES', choices: ['container', 'image', 'volume', 'all'], description: 'Select Docker resources to clean (multiple choices allowed)', multipleChoice: true)
+    }
+
+
     stages {   
         stage('Checkout SCM') {
             steps {
@@ -82,28 +117,8 @@ pipeline {
         stage('Clean Docker Resources') {
             steps {
                 script {
-                    // Define the cleanup operation (container, image, etc.)
-                    def cleanupType = 'container' // Can be 'container', 'image', or 'system'
-                    def pruneCommand = ""
-
-                    // Set the prune command based on the cleanup type
-                    if (cleanupType == 'container') {
-                        pruneCommand = 'docker container prune -f'
-                    } else if (cleanupType == 'image') {
-                        pruneCommand = 'docker image prune -a -f'
-                    } else if (cleanupType == 'system') {
-                        pruneCommand = 'docker system prune -f --volumes'
-                    }
-
-                    // Execute the cleanup command on the remote host
-                    withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
-                                                      usernameVariable: 'SSH_USERNAME', 
-                                                      keyFileVariable: 'SSH_KEY')]) {
-                        sh """
-                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
-                            '$pruneCommand'
-                        """
-                    }
+                    // Call the cleanup function and pass the selected cleanup types
+                    cleanDockerResources(params.CLEANUP_TYPES)
                 }
             }
         }
