@@ -16,7 +16,7 @@ def cleanDockerResources(cleanupTypes) {
                                               usernameVariable: 'SSH_USERNAME', 
                                               keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@${params.DOCKER_HOST} \\ 
+                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@REMOTE_HOST \\ 
                     '$pruneCommand'
                 """
             }
@@ -35,7 +35,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONARQUBE'
-        // REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
+        REMOTE_HOST = ${params.DOCKER_HOST} // Replace with your Docker host IP
         // // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
         // SONAR_URL = params.SONAR_URL // SonarQube server
         // SONAR_TOKEN = params.SONAR_TOKEN
@@ -149,7 +149,7 @@ pipeline {
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@${params.DOCKER_HOST} \\
+                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@REMOTE_HOST \\
                             'docker run -itd --name ekart -p 8070:8070 scor8709/shopping-cart:latest'
                         """
                     }
