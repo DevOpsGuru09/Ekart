@@ -6,7 +6,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONAR_SCAN'
-        REMOTE_HOST = '192.168.1.9' // Replace with your Docker host IP
+        REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
     }
     stages {   
         stage('Checkout SCM') {
@@ -30,8 +30,8 @@ pipeline {
                         -Dsonar.projectKey=shopping-cart \
                         -Dsonar.sources=. \
                         -Dsonar.java.binaries=. \
-                        -Dsonar.host.url=http://192.168.1.15:9002/ \
-                        -Dsonar.login=squ_9b69eab749e454e3b6b15de42501a67bd99412ca
+                        -Dsonar.host.url=http://192.168.1.154:9000/ \
+                        -Dsonar.login=28bcc6d0a8390cce56c74fca8697c33b3ee5c4cf
 
                     '''
                 }
@@ -39,7 +39,7 @@ pipeline {
         }
         stage('OWASP Dependency Check') {
             steps {
-                    dependencyCheck additionalArguments: '-s ./', odcInstallation: 'DP-Check'
+                    dependencyCheck additionalArguments: '-s ./', odcInstallation: 'DP-CHECK'
                       dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
@@ -53,7 +53,7 @@ pipeline {
         stage('Build & Push to Docker') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: '48355594-1782-4bc9-b2d7-3470ed1322bb', toolName: 'Docker') {
+                    withDockerRegistry(credentialsId: 'dockerhub_cred', toolName: 'Docker') {
                         sh 'docker build -t shopping-cart -f docker/Dockerfile .'
                         sh 'docker tag shopping-cart scor8709/shopping-cart:latest'
                         sh 'docker push scor8709/shopping-cart:latest'
@@ -64,7 +64,7 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: '0ab2a435-eead-4006-a185-e907755fd565', 
+                    withCredentials([usernamePassword(credentialsId: 'docker_id', 
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       passwordVariable: 'SSH_PASSWORD')]) {
                         sh """
