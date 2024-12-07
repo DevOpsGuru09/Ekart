@@ -70,6 +70,15 @@ pipeline {
                 }
             }
         }
+
+        stage('Scanning Vulnerability') {
+            steps {
+                script {
+                    sh 'docker run --rm -v $(pwd):/project aquasec/trivy image --format template -t '<html><head><style>table {width: 100%; border-collapse: collapse;} th, td {border: 1px solid #ddd; padding: 8px;} tr:nth-child(even) {background-color: #f2f2f2;} th {background-color: #4CAF50; color: white;}</style></head><body><h2>Trivy Vulnerability Report</h2><table>{{range .Vulnerabilities}}<tr><td>{{.VulnerabilityID}}</td><td>{{.PkgName}}</td><td>{{.Severity}}</td><td>{{.Title}}</td></tr>{{end}}</table></body></html>' -o /project/image-scan-report.html scor8709/shopping-cart:latest'
+                }
+            }
+        }
+        
         stage('Deploy Container') {
             steps {
                 script {
