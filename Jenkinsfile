@@ -16,7 +16,7 @@ def cleanDockerResources(cleanupTypes) {
                                               usernameVariable: 'SSH_USERNAME', 
                                               keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\ 
+                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \
                     '$pruneCommand'
                 """
             }
