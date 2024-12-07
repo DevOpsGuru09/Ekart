@@ -54,8 +54,6 @@ pipeline {
         string(name: 'SONAR_PROJECT_KEY', defaultValue: 'shopping-cart', 
                description: 'Enter the SonarQube project key')
         // Input for Docker details
-        string(name: 'DOCKER_HOST', defaultValue: '192.168.1.13', 
-               description: 'Enter the Docker Host URL')
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'shopping-cart', 
                description: 'Enter the Docker image name')
     }
