@@ -111,7 +111,7 @@ pipeline {
                 script {
                     def dockerTag = "${env.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
                     withDockerRegistry(credentialsId: 'dockerhub_cred', toolName: 'Docker') {
-                        sh 'docker build -t ${dockerTag} -f docker/Dockerfile .'
+                        sh "docker build -t ${dockerTag} -f docker/Dockerfile ."
                         sh 'docker tag ${dockerTag} scor8709/${DOCKER_IMAGE_NAME}:${BUILD_NUMBER}'
                         sh 'docker push scor8709/${DOCKER_IMAGE_NAME}:${BUILD_NUMBER}'
                     }
