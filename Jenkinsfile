@@ -64,7 +64,7 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    withCredentials([usernamePassword(sshUserPrivateKey: 'docker_host', 
+                    withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
