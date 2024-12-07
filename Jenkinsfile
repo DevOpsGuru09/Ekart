@@ -5,7 +5,7 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'SONAR_SCAN'
+        SCANNER_HOME = tool 'SONARQUBE'
         REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
     }
     stages {   
