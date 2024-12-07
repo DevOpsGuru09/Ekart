@@ -16,7 +16,7 @@ def cleanDockerResources(cleanupTypes) {
                                               usernameVariable: 'SSH_USERNAME', 
                                               keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\ 
+                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@${params.DOCKER_HOST} \\ 
                     '$pruneCommand'
                 """
             }
@@ -35,7 +35,10 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONARQUBE'
-        REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
+        // REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
+        // // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
+        // SONAR_URL = params.SONAR_URL // SonarQube server
+        // SONAR_TOKEN = params.SONAR_TOKEN
     }
 
     parameters {
@@ -44,12 +47,17 @@ pipeline {
         // Input for SonarQube details
         string(name: 'SONAR_URL', defaultValue: 'http://192.168.1.154:9000/', 
                description: 'Enter the SonarQube server URL')
-        string(name: 'SONAR_TOKEN', defaultValue: '', 
+        string(name: 'SONAR_TOKEN', defaultValue: '28bcc6d0a8390cce56c74fca8697c33b3ee5c4cf', 
                description: 'Enter the SonarQube authentication token')
         string(name: 'SONAR_PROJECT_NAME', defaultValue: 'shopping-cart', 
                description: 'Enter the SonarQube project name')
         string(name: 'SONAR_PROJECT_KEY', defaultValue: 'shopping-cart', 
                description: 'Enter the SonarQube project key')
+        // Input for Docker details
+        string(name: 'DOCKER_HOST', defaultValue: '192.168.1.13', 
+               description: 'Enter the Docker Host URL')
+        string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'shopping-cart', 
+               description: 'Enter the Docker image name')
     }
 
 
@@ -141,7 +149,7 @@ pipeline {
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
+                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@${params.DOCKER_HOST} \\
                             'docker run -itd --name ekart -p 8070:8070 scor8709/shopping-cart:latest'
                         """
                     }
