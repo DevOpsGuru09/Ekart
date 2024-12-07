@@ -64,11 +64,11 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'docker_id', 
+                    withCredentials([usernamePassword(sshUserPrivateKey: 'docker_host', 
                                                       usernameVariable: 'SSH_USERNAME', 
-                                                      passwordVariable: 'SSH_PASSWORD')]) {
+                                                      keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
+                            sshpass -i "$SSH_KEY" ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
                             'docker run -itd --name ekart -p 8070:8070 scor8709/shopping-cart:latest'
                         """
                     }
