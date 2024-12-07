@@ -16,8 +16,8 @@ def cleanDockerResources(cleanupTypes) {
                                               usernameVariable: 'SSH_USERNAME', 
                                               keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                    ssh -i "\$SSH_KEY" -o StrictHostKeyChecking=no \$SSH_USERNAME@${params.DOCKER_HOST} \\
-                    '${pruneCommand}'
+                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\ 
+                    '$pruneCommand'
                 """
             }
         } else {
@@ -25,6 +25,7 @@ def cleanDockerResources(cleanupTypes) {
         }
     }
 }
+
 
 pipeline {
     agent any
@@ -34,13 +35,16 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONARQUBE'
+        REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
+        // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
         SONAR_URL = params.SONAR_URL // SonarQube server
-        SONAR_TOKEN = params.SONAR_TOKEN // Replace with a secure credential
+        SONAR_TOKEN = params.SONAR_TOKEN
     }
 
     parameters {
-        string(name: 'CLEANUP_TYPES', defaultValue: 'container,image', 
-               description: 'Enter Docker resources to clean (e.g., container,image,volume)')
+        // String input to let the user input multiple options separated by commas
+        string(name: 'CLEANUP_TYPES', defaultValue: 'container,image', description: 'Enter Docker resources to clean (e.g., container,image,volume)')
+        // Input for SonarQube details
         string(name: 'SONAR_URL', defaultValue: 'http://192.168.1.154:9000/', 
                description: 'Enter the SonarQube server URL')
         string(name: 'SONAR_TOKEN', defaultValue: '', 
@@ -49,73 +53,67 @@ pipeline {
                description: 'Enter the SonarQube project name')
         string(name: 'SONAR_PROJECT_KEY', defaultValue: 'shopping-cart', 
                description: 'Enter the SonarQube project key')
-        string(name: 'DOCKER_HOST', defaultValue: '192.168.1.13', 
-               description: 'Enter the Docker Host URL')
-        string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'shopping-cart', 
-               description: 'Enter the Docker image name')
     }
 
-    stages {
+
+    stages {   
         stage('Checkout SCM') {
             steps {
                 git branch: 'main', url: 'https://github.com/DevOpsGuru09/Ekart.git'
             }
-        }
-
+        }     
         stage('Compile') {
             steps {
-                sh 'mvn clean compile'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
                 script {
-                    sh """
-                        ${SCANNER_HOME}/bin/sonar-scanner \\
-                        -Dsonar.projectName=${params.SONAR_PROJECT_NAME} \\
-                        -Dsonar.projectKey=${params.SONAR_PROJECT_KEY} \\
-                        -Dsonar.sources=. \\
-                        -Dsonar.java.binaries=. \\
-                        -Dsonar.host.url=${SONAR_URL} \\
-                        -Dsonar.login=${SONAR_TOKEN}
-                    """
+                    sh 'mvn clean compile'
                 }
             }
         }
-
-        stage('OWASP Dependency Check') {
+        stage('SonarQube Analysis') {
             steps {
-                dependencyCheck additionalArguments: '-s ./', odcInstallation: 'DP-CHECK'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                script {
+                    sh '''
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectName=shopping-cart \
+                        -Dsonar.projectKey=shopping-cart \
+                        -Dsonar.sources=. \
+                        -Dsonar.java.binaries=. \
+                        -Dsonar.host.url=${SONAR_URL} \
+                        -Dsonar.login=${SONAR_TOKEN}
+
+                    '''
+                }
             }
         }
-
+        stage('OWASP Dependency Check') {
+            steps {
+                    dependencyCheck additionalArguments: '-s ./', odcInstallation: 'DP-CHECK'
+                      dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
         stage('Build Application') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                script {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
         stage('Scanning Vulnerability') {
             steps {
-                sh """
-                    docker run --rm -v $(pwd):/project aquasec/trivy fs \\
-                    --format table -o /project/fs-report.html /project
-                """
+                script {
+                    sh 'docker run --rm -v $(pwd):/project aquasec/trivy fs --format table -o /project/fs-report.html /project'
+                }
             }
         }
-
-        stage('Build & Push Docker Image') {
+        
+        stage('Build & Push to Docker') {
             steps {
                 script {
-                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
                     withDockerRegistry(credentialsId: 'dockerhub_cred', toolName: 'Docker') {
-                        sh """
-                            docker build -t ${params.DOCKER_IMAGE_NAME} -f docker/Dockerfile .
-                            docker tag ${params.DOCKER_IMAGE_NAME} scor8709/${dockerImageTag}
-                            docker push scor8709/${dockerImageTag}
-                        """
+                        sh 'docker build -t shopping-cart -f docker/Dockerfile .'
+                        sh 'docker tag shopping-cart scor8709/shopping-cart:latest'
+                        sh 'docker push scor8709/shopping-cart:latest'
                     }
                 }
             }
@@ -124,11 +122,7 @@ pipeline {
         stage('Scanning Docker Image') {
             steps {
                 script {
-                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
-                    sh """
-                        docker run --rm -v $(pwd):/project aquasec/trivy image \\
-                        --format table -o /project/image-scan-report.html scor8709/${dockerImageTag}
-                    """
+                    sh '''docker run --rm -v $(pwd):/project aquasec/trivy image --format table -o /project/image-scan-report.html scor8709/shopping-cart:latest'''
                 }
             }
         }
@@ -136,22 +130,22 @@ pipeline {
         stage('Clean Docker Resources') {
             steps {
                 script {
-                    def cleanupTypes = params.CLEANUP_TYPES.split(',').collect { it.trim() }
+                    // Split the input into a list and call the cleanup function
+                    def cleanupTypes = params.CLEANUP_TYPES.split(',')
                     cleanDockerResources(cleanupTypes)
                 }
             }
         }
-
+        
         stage('Deploy to Docker Container') {
             steps {
                 script {
-                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
                     withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            ssh -i "\$SSH_KEY" -o StrictHostKeyChecking=no \$SSH_USERNAME@${params.DOCKER_HOST} \\
-                            'docker run -itd --name ekart -p 8070:8070 scor8709/${dockerImageTag}'
+                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
+                            'docker run -itd --name ekart -p 8070:8070 scor8709/shopping-cart:latest'
                         """
                     }
                 }
