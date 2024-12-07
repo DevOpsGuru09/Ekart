@@ -35,7 +35,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONARQUBE'
-        REMOTE_HOST = sanitizeHost(params.DOCKER_HOST) // Replace with your Docker host IP
+        // REMOTE_HOST = sanitizeHost(params.DOCKER_HOST) // Replace with your Docker host IP
         // // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
         // SONAR_URL = params.SONAR_URL // SonarQube server
         // SONAR_TOKEN = params.SONAR_TOKEN
