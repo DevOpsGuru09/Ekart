@@ -68,7 +68,7 @@ pipeline {
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            sshpass -i "$SSH_KEY" ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
+                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
                             'docker run -itd --name ekart -p 8070:8070 scor8709/shopping-cart:latest'
                         """
                     }
