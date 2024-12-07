@@ -87,8 +87,8 @@ pipeline {
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
                             ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@$REMOTE_HOST \\
-                            'docker container prune -f' \\
-                            'docker image prune -f' \\
+                            'docker container prune -f' \
+                            'docker image prune -f' \
                             'docker run -itd --name ekart -p 8070:8070 scor8709/shopping-cart:latest'
                         """
                     }
