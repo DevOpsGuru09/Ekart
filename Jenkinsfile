@@ -38,8 +38,8 @@ pipeline {
     }
 
     parameters {
-        // Define multi-choice parameter to allow selection of multiple cleanup options
-        choice(name: 'CLEANUP_TYPES', choices: ['container', 'image', 'volume', 'all'], description: 'Select Docker resources to clean (multiple choices allowed)', multipleChoice: true)
+        // String input to let the user input multiple options separated by commas
+        string(name: 'CLEANUP_TYPES', defaultValue: 'container,image', description: 'Enter Docker resources to clean (e.g., container,image,volume)')
     }
 
 
@@ -117,8 +117,9 @@ pipeline {
         stage('Clean Docker Resources') {
             steps {
                 script {
-                    // Call the cleanup function and pass the selected cleanup types
-                    cleanDockerResources(params.CLEANUP_TYPES)
+                    // Split the input into a list and call the cleanup function
+                    def cleanupTypes = params.CLEANUP_TYPES.split(',')
+                    cleanDockerResources(cleanupTypes)
                 }
             }
         }
