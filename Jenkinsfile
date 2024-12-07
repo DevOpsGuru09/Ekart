@@ -74,7 +74,7 @@ pipeline {
         stage('Scanning Docker Image') {
             steps {
                 script {
-                    sh '''docker run --rm -v $(pwd):/project aquasec/trivy image --format json -o /project/image-scan-report.json scor8709/shopping-cart:latest'''
+                    sh '''docker run --rm -v $(pwd):/project aquasec/trivy image --format table -o /project/image-scan-report.html scor8709/shopping-cart:latest'''
                 }
             }
         }
