@@ -50,6 +50,15 @@ pipeline {
                 }
             }
         }
+
+        stage('Scanning Vulnerability') {
+            steps {
+                script {
+                    sh 'docker run --rm -v $(pwd):/project aquasec/trivy fs --format table -o /project/fs-report.html /project'
+                }
+            }
+        }
+        
         stage('Build & Push to Docker') {
             steps {
                 script {
