@@ -16,8 +16,8 @@ def cleanDockerResources(cleanupTypes) {
                                               usernameVariable: 'SSH_USERNAME', 
                                               keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@${params.DOCKER_HOST} \\ 
-                    '$pruneCommand'
+                    ssh -i "\$SSH_KEY" -o StrictHostKeyChecking=no \$SSH_USERNAME@${params.DOCKER_HOST} \\
+                    '${pruneCommand}'
                 """
             }
         } else {
@@ -34,7 +34,6 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'SONARQUBE'
-        // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
         SONAR_URL = params.SONAR_URL // SonarQube server
         SONAR_TOKEN = params.SONAR_TOKEN // Replace with a secure credential
     }
@@ -42,8 +41,6 @@ pipeline {
     parameters {
         string(name: 'CLEANUP_TYPES', defaultValue: 'container,image', 
                description: 'Enter Docker resources to clean (e.g., container,image,volume)')
-        
-        // Input for SonarQube details
         string(name: 'SONAR_URL', defaultValue: 'http://192.168.1.154:9000/', 
                description: 'Enter the SonarQube server URL')
         string(name: 'SONAR_TOKEN', defaultValue: '', 
@@ -52,8 +49,6 @@ pipeline {
                description: 'Enter the SonarQube project name')
         string(name: 'SONAR_PROJECT_KEY', defaultValue: 'shopping-cart', 
                description: 'Enter the SonarQube project key')
-
-        // Input for Docker details
         string(name: 'DOCKER_HOST', defaultValue: '192.168.1.13', 
                description: 'Enter the Docker Host URL')
         string(name: 'DOCKER_IMAGE_NAME', defaultValue: 'shopping-cart', 
@@ -77,12 +72,12 @@ pipeline {
             steps {
                 script {
                     sh """
-                        ${SCANNER_HOME}/bin/sonar-scanner \\ 
-                        -Dsonar.projectName=shopping-cart \\ 
-                        -Dsonar.projectKey=shopping-cart \\ 
-                        -Dsonar.sources=. \\ 
-                        -Dsonar.java.binaries=. \\ 
-                        -Dsonar.host.url=${SONAR_URL} \\ 
+                        ${SCANNER_HOME}/bin/sonar-scanner \\
+                        -Dsonar.projectName=${params.SONAR_PROJECT_NAME} \\
+                        -Dsonar.projectKey=${params.SONAR_PROJECT_KEY} \\
+                        -Dsonar.sources=. \\
+                        -Dsonar.java.binaries=. \\
+                        -Dsonar.host.url=${SONAR_URL} \\
                         -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
@@ -104,14 +99,17 @@ pipeline {
 
         stage('Scanning Vulnerability') {
             steps {
-                sh 'docker run --rm -v $(pwd):/project aquasec/trivy fs --format table -o /project/fs-report.html /project'
+                sh """
+                    docker run --rm -v $(pwd):/project aquasec/trivy fs \\
+                    --format table -o /project/fs-report.html /project
+                """
             }
         }
 
         stage('Build & Push Docker Image') {
             steps {
                 script {
-                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}" // Build number-based tag
+                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
                     withDockerRegistry(credentialsId: 'dockerhub_cred', toolName: 'Docker') {
                         sh """
                             docker build -t ${params.DOCKER_IMAGE_NAME} -f docker/Dockerfile .
@@ -126,9 +124,9 @@ pipeline {
         stage('Scanning Docker Image') {
             steps {
                 script {
-                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}" // Use same tag for scan
+                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
                     sh """
-                        docker run --rm -v $(pwd):/project aquasec/trivy image \\ 
+                        docker run --rm -v $(pwd):/project aquasec/trivy image \\
                         --format table -o /project/image-scan-report.html scor8709/${dockerImageTag}
                     """
                 }
@@ -147,12 +145,12 @@ pipeline {
         stage('Deploy to Docker Container') {
             steps {
                 script {
-                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}" // Use same tag for deployment
+                    def dockerImageTag = "${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
                     withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
                                                       usernameVariable: 'SSH_USERNAME', 
                                                       keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $SSH_USERNAME@${params.DOCKER_HOST} \\ 
+                            ssh -i "\$SSH_KEY" -o StrictHostKeyChecking=no \$SSH_USERNAME@${params.DOCKER_HOST} \\
                             'docker run -itd --name ekart -p 8070:8070 scor8709/${dockerImageTag}'
                         """
                     }
