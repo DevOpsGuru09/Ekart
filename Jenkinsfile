@@ -71,7 +71,7 @@ pipeline {
             }
         }
 
-        stage('Scanning Vulnerability') {
+        stage('Scanning Docker Image') {
             steps {
                 script {
                     sh '''docker run --rm -v $(pwd):/project aquasec/trivy image --format template \
@@ -81,7 +81,7 @@ pipeline {
             }
         }
         
-        stage('Deploy Container') {
+        stage('Deploy to Docker Container') {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'docker_host', 
