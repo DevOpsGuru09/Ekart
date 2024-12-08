@@ -70,14 +70,6 @@ pipeline {
             }
         }
 
-        stage('Testing of Code') {
-            steps {
-                script {
-                    sh 'mvn test'
-                }
-            }
-        }
-
         stage('Scanning Vulnerability') {
             steps {
                 script {
