@@ -45,7 +45,7 @@ pipeline {
         string(name: 'CLEANUP_TYPES', defaultValue: 'container,image,volume,all', description: 'Enter Docker resources to clean (e.g., container,image,volume)')
         // Input for SonarQube details
         // string(name: 'SONAR_URL', defaultValue: 'http://192.168.1.154:9000/', description: 'Enter the SonarQube server URL')
-        string(name: 'SONAR_TOKEN', defaultValue: '28bcc6d0a8390cce56c74fca8697c33b3ee5c4cf', description: 'Enter the SonarQube authentication token')
+        // string(name: 'SONAR_TOKEN', defaultValue: '28bcc6d0a8390cce56c74fca8697c33b3ee5c4cf', description: 'Enter the SonarQube authentication token')
         string(name: 'SONAR_PROJECT_NAME', defaultValue: 'shopping-cart', description: 'Enter the SonarQube project name')
         string(name: 'SONAR_PROJECT_KEY', defaultValue: 'shopping-cart', description: 'Enter the SonarQube project key')
         // Input for Docker details
