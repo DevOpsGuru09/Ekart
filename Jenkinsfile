@@ -87,8 +87,7 @@ pipeline {
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                         -Dsonar.projectKey=${SONAR_PROJECT_NAME} \
                         -Dsonar.sources=. \
-                        -Dsonar.java.binaries=. \
-                        -Dsonar.login=${SONAR_TOKEN}
+                        -Dsonar.java.binaries=.
 
                     '''
                 }
