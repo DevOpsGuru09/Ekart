@@ -33,7 +33,7 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'SONARQUBE'
+        SCANNER_HOME = tool 'SONAR_SCANNER'
         REMOTE_HOST = '192.168.1.13' // Replace with your Docker host IP
         // // REMOTE_HOST = params.DOCKER_HOST // Docker host IP
         // SONAR_URL = params.SONAR_URL // SonarQube server
@@ -81,7 +81,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('SONARQUBE')
+                    withSonarQubeEnv('SONARQUBE'){
                     sh '''
                         ${SCANNER_HOME}/bin/sonar-scanner \
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
@@ -90,6 +90,8 @@ pipeline {
                         -Dsonar.java.binaries=.
 
                     '''
+                    }
+
                 }
             }
         }
@@ -156,7 +158,6 @@ pipeline {
         }
     }
 }
-
 
 // // Function to clean Docker resources
 // def cleanDockerResources(cleanupTypes) {
