@@ -112,7 +112,7 @@ pipeline {
         stage('Push the Artifacts') {
             steps {
                 withMaven(globalMavenSettingsConfig: 'global-setting', jdk: 'JAVA', maven: 'MAVEN', mavenSettingsConfig: '', traceability: true) {
-                    sh "mvn deploy"
+                    sh "mvn deploy -DskipTests"
                 }
             }
         }
